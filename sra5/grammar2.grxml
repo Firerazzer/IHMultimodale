@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE grammar PUBLIC "-//W3C//DTD GRAMMAR 1.0//EN"
+                "grammar.dtd">
+<!-- the default grammar language is FR  -->
+<grammar  version="1.0"
+          mode ="voice"
+          xmlns="http://www.w3.org/2001/06/grammar"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.w3.org/2001/06/grammar
+                              grammar.xsd"
+          xml:lang="fr-FR" root="answer" tag-format="semantics/1.0">
+          
+<rule id="answer" scope="public"> 
+    <item repeat="1-">
+		<item repeat="0-1">
+			<one-of>
+				<item>
+					<ruleref uri="#creer"/>
+					<tag>out="creer"</tag>
+				</item>
+				<item>
+					<ruleref uri="#deplacer"/>
+					<tag>out="deplacer"</tag>
+				</item>
+				<item>
+					<ruleref uri="#supprimer"/>
+					<tag>out="supprimer"</tag>
+				</item>
+			</one-of>
+		</item>
+
+		<item repeat="0-1">
+			<one-of>
+				<item>
+					<ruleref uri="#rectangle"/>
+					<tag>out="rectangle"</tag>
+				</item>
+				<item>
+					<ruleref uri="#cercle"/>
+					<tag>out="cercle"</tag>
+				</item>
+				<item>triangle
+					<tag>out="triangle"</tag>
+				</item>
+			</one-of>
+		</item>
+
+		<item repeat="0-1">
+			<ruleref uri="#pointage"/>
+			<tag>out="ca"</tag>
+		</item>
+
+		<item repeat="0-1">
+			<ruleref uri="#localisation"/>
+			<tag>out="ici"</tag>
+		</item>
+
+		<item repeat="0-1">
+			<one-of>
+				<item>bleu
+					<tag>out="bleu"</tag>
+				</item>
+				<item>rouge
+					<tag>out="rouge"</tag>
+				</item>
+				<item>vert
+					<tag>out="vert"</tag>
+				</item>
+			</one-of>
+		</item>
+	</item>
+</rule>
+       
+<rule id="creer">
+    <one-of>
+      	<item>creer</item>
+      	<item>dessiner</item>
+      	<item>placer</item>
+      	<item>place</item>
+      	<item>dessine</item>
+    </one-of> 
+</rule> 
+
+<rule id="deplacer">
+    <one-of>
+      	<item>deplacer</item>
+      	<item>bouger</item>
+      	<item>deplace</item>
+      	<item>bouge</item>
+    </one-of> 
+</rule>
+
+<rule id="supprimer">
+    <one-of>
+      	<item>supprimer</item>
+      	<item>supprime</item>
+      	<item>enlever</item>
+      	<item>enleve</item>
+    </one-of> 
+</rule> 
+
+<rule id="rectangle">
+    <one-of>
+		<item>rectangle</item>
+		<item>carre</item>
+    </one-of>
+  </rule>
+
+  <rule id="cercle">
+  	<one-of>
+  		<item>cercle</item>
+  		<item>rond</item>
+  	</one-of>
+  </rule>
+
+  <rule id="localisation">
+  	<one-of>
+  		<item>ici</item>
+  		<item>la</item>
+  	</one-of>
+  </rule>
+
+  <rule id="pointage">
+  	<one-of>
+  		<item>ca</item>
+  		<item>cette forme</item>
+  	</one-of>
+  </rule>
+
+
+</grammar>

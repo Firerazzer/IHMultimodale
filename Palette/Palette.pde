@@ -24,6 +24,8 @@ void setup() {
   noStroke();
   mae = FSM.INITIAL;
   indice_forme = -1;
+
+  initIvy();
 }
 
 void draw() {
@@ -118,5 +120,28 @@ void keyPressed() {
     case 'm' : // move
       mae=FSM.DEPLACER_FORMES_SELECTION;
       break;
+  }
+
+
+  void initIvy() {
+    try {
+      busIvy.start("127.255.255.255:2010");
+      System.out.println("Ivy controller started");
+      busIvy.bindMsg("^sra5 Parsed=(.*) Confidence=.*", new IvyMessageListener() {
+          public void receive(IvyClient client, String[] args) {
+              sraListener(args[0]);
+          }
+      });
+
+      busIvy.bindMsg("^cmdController Point=(.*) Confidence=.*", new IvyMessageListener() {
+          public void receive(IvyClient client, String[] args) {
+              paletteListener(args[0]);
+          }
+      });
+  } catch (IvyException e) {
+      e.printStackTrace();
+  } catch (InterruptedException e) {
+      e.printStackTrace();
+  }
   }
 }

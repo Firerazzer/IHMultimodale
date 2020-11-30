@@ -8,8 +8,6 @@ import java.awt.*;
 
 public class IvyController {
     private Ivy busIvy;
-    private Thread threadIvy = null;
-    private boolean killThreadIvy = false;
     CmdEventHandler cmdEventHandler;
 
     public IvyController(CmdEventHandler cmdEventHandler) {
@@ -18,48 +16,33 @@ public class IvyController {
     }
 
     public void start() {
-        if (threadIvy == null)
-            threadIvy = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        busIvy.start("127.255.255.255:2010");
-                        System.out.println("Ivy controller started");
-                        busIvy.bindMsg("^sra5 Parsed=(.*) Confidence=.*", new IvyMessageListener() {
-                            public void receive(IvyClient client, String[] args) {
-                                sraListener(args[0]);
-                            }
-                        });
-
-                        busIvy.bindMsg("^palette Point=(.*) Confidence=.*", new IvyMessageListener() {
-                            public void receive(IvyClient client, String[] args) {
-                                paletteListener(args[0]);
-                            }
-                        });
-
-                        busIvy.bindMsg("^ICAR Gesture=(.*)", new IvyMessageListener() {
-                            public void receive(IvyClient client, String[] args) {
-                                icarListener(args[0]);
-                            }
-                        });
-
-                        while (!killThreadIvy) {
-                            Thread.sleep(50);
-                        }
-
-                    } catch (IvyException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        try {
+            busIvy.start("127.255.255.255:2010");
+            System.out.println("Ivy controller started");
+            busIvy.bindMsg("^sra5 Parsed=(.*) Confidence=.*", new IvyMessageListener() {
+                public void receive(IvyClient client, String[] args) {
+                    sraListener(args[0]);
                 }
             });
-        if (!threadIvy.isAlive())
-            threadIvy.start();
+
+            busIvy.bindMsg("^palette Point=(.*) Confidence=.*", new IvyMessageListener() {
+                public void receive(IvyClient client, String[] args) {
+                    paletteListener(args[0]);
+                }
+            });
+
+            busIvy.bindMsg("^ICAR Gesture=(.*)", new IvyMessageListener() {
+                public void receive(IvyClient client, String[] args) {
+                    icarListener(args[0]);
+                }
+            });
+
+        } catch (IvyException e) {
+            e.printStackTrace();
+        }
     }
 
     public void stop() {
-        killThreadIvy = true;
         busIvy.stop();
     }
 
@@ -73,7 +56,7 @@ public class IvyController {
 
     private void sraListener(String msg) {
         System.out.println("sra : " + msg);
-        if(!msg.equals("ici") && !msg.equals("ca")) {
+        if (!msg.equals("ici") && !msg.equals("ca")) {
             ObjType cmd = Interpreter.getType(msg);
             cmdEventHandler.invoke(cmd);
         }
