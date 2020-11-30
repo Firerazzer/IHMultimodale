@@ -11,7 +11,7 @@ ArrayList<Forme> formes; // liste de formes stockées
 FSM mae; // Finite Sate Machine
 int indice_forme;
 PImage sketch_icon;
-Ivy bus;
+Ivy busIvy;
 
 void setup() {
   size(800,600);
@@ -25,7 +25,7 @@ void setup() {
   mae = FSM.INITIAL;
   indice_forme = -1;
 
-  initIvy();
+  //initIvy();
 }
 
 void draw() {
@@ -121,27 +121,25 @@ void keyPressed() {
       mae=FSM.DEPLACER_FORMES_SELECTION;
       break;
   }
+}
 
 
-  void initIvy() {
+void initIvy() {
     try {
       busIvy.start("127.255.255.255:2010");
       System.out.println("Ivy controller started");
       busIvy.bindMsg("^sra5 Parsed=(.*) Confidence=.*", new IvyMessageListener() {
           public void receive(IvyClient client, String[] args) {
-              sraListener(args[0]);
+              //sraListener(args[0]);
           }
       });
 
       busIvy.bindMsg("^cmdController Point=(.*) Confidence=.*", new IvyMessageListener() {
           public void receive(IvyClient client, String[] args) {
-              paletteListener(args[0]);
+              //paletteListener(args[0]);
           }
       });
   } catch (IvyException e) {
       e.printStackTrace();
-  } catch (InterruptedException e) {
-      e.printStackTrace();
-  }
   }
 }

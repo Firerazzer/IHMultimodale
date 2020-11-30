@@ -56,7 +56,8 @@ public class IvyController {
 
     private void sraListener(String msg) {
         System.out.println("sra : " + msg);
-        if (!msg.equals("ici") && !msg.equals("ca")) {
+        msg = msg.split(";")[0];
+        if (!msg.equals("ici") && !msg.equals("ca") && !msg.equals("ce")) {
             ObjType cmd = Interpreter.getType(msg);
             cmdEventHandler.invoke(cmd);
         }
