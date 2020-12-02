@@ -7,16 +7,17 @@ javac -d bin -sourcepath %javaSrc% -cp %javaLib%\*.jar %javaSrc%\controller\*.ja
 
 
 cd /d sra5
-start /b sra_on.bat
+start cmd /k sra_on.bat
 cd /d %CURRENTDIR%
 
 cd /d %CURRENTDIR%/icar
-start /b Icarivy.bat > NUL
+start cmd /k Icarivy.bat
 cd /d %CURRENTDIR%
 
-start /b processing-java --sketch=%cd%/Palette --run > NUL
+start cmd /k Palette.bat
 
 cd /d bin
+start cmd /k Probe.bat
 java controller.MainController
 cd /d %CURRENTDIR%
 

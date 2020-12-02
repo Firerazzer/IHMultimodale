@@ -4,6 +4,7 @@ import processing.event.*;
 import processing.opengl.*; 
 
 import java.awt.Point; 
+import java.awt.*; 
 
 import fr.dgac.ivy.*; 
 import fr.dgac.ivy.tools.*; 
@@ -33,7 +34,7 @@ ArrayList<Forme> formes; // liste de formes stockées
 FSM mae; // Finite Sate Machine
 int indice_forme;
 PImage sketch_icon;
-Ivy bus;
+Ivy busIvy;
 
 public void setup() {
   
@@ -46,11 +47,13 @@ public void setup() {
   noStroke();
   mae = FSM.INITIAL;
   indice_forme = -1;
+
+  initIvy();
 }
 
 public void draw() {
   background(0);
-  println("MAE : " + mae + " indice forme active ; " + indice_forme);
+  //println("MAE : " + mae + " indice forme active ; " + indice_forme);
   switch (mae) {
     case INITIAL:  // Etat INITIAL
       background(255);
@@ -142,6 +145,220 @@ public void keyPressed() {
       break;
   }
 }
+
+
+public void initIvy() {
+    try {
+		busIvy = new Ivy("Palette", null, null);
+      busIvy.start("127.255.255.255:2010");
+      System.out.println("Ivy Palette started");
+      busIvy.bindMsg("^sra5 Parsed=(.*) Confidence=.*", new IvyMessageListener() {
+          public void receive(IvyClient client, String[] args) {
+              sraListener(args[0]);
+          }
+      });
+
+      busIvy.bindMsg("^cmdController send=(.*)", new IvyMessageListener() {
+          public void receive(IvyClient client, String[] args) {
+              cmdListener(args[0]);
+          }
+      });
+  } catch (IvyException e) {
+      e.printStackTrace();
+  }
+}
+
+
+public void sraListener(String cmd){
+	String msg = cmd.split(";")[0];
+        if (msg.equals("ici")) {
+			String toSend = "ici;" + mouseX + "," + mouseY;
+			sendMessage(toSend);
+		}
+
+		if(msg.equals("ca")) {
+      Point p = new Point(mouseX,mouseY);
+	    for (int i=0;i<formes.size();i++) { // we're trying every object in the list
+        if ((formes.get(i)).isClicked(p)) {
+          Forme f = formes.get(i);
+          sendMessage("ca;" + p.getX() + "," + p.getY() + ";" + (f.getClass().toString().split("\\$")[1]).toLowerCase());
+        }
+      }
+		}
+
+		if(msg.equals("ce")) {
+			Point p = new Point(mouseX,mouseY);
+      for (int i=0;i<formes.size();i++) { // we're trying every object in the list
+        Forme f = formes.get(i);
+        if (f.isClicked(p) && (f.getClass().toString().split("\\$")[1]).toLowerCase().equals(cmd.split(";")[1])) {
+          sendMessage("ca;" + p.getX() + "," + p.getY() + ";" + (f.getClass().toString().split("\\$")[1]).toLowerCase() + ";" + red(f.getColor()) + "," + green(f.getColor()) + "," + blue(f.getColor()));
+        }
+      }
+		}
+
+		if(msg.equals("pipette")) {
+			sendMessage("pipette;" + red(get(mouseX,mouseY)) + "," + green(get(mouseX,mouseY)) + "," + blue(get(mouseX,mouseY)));
+		}
+}
+
+
+public void cmdListener(String cmd){
+	ActionComplete act = ActionComplete.parseActionComplete(cmd);
+	println("CMD received : " + act.toString());
+	switch(act.act) {
+		case CREER :
+			creerForme(act);
+      break;
+      
+		case DEPLACER :
+			deplacerForme(act);
+      break;
+
+    case SUPPRIMER :
+      supprimerForme(act);
+      break;
+	}
+  mae=FSM.AFFICHER_FORMES;
+}
+
+public void sendMessage(String msg) {
+	try {
+        busIvy.sendMsg("palette " + msg);
+    } catch (IvyException e) {
+        e.printStackTrace();
+    }
+}
+
+
+public void creerForme(ActionComplete act) {
+  Point p = act.pointEnd;
+  int c = color(127);
+  if(act.c != null)
+        c = color(act.c.getRed(), act.c.getGreen(), act.c.getBlue());
+        
+	switch(act.forme) {
+		case RECTANGLE:
+			Forme f= new Rectangle(p);
+			f.setColor(c);
+			formes.add(f);
+			mae=FSM.AFFICHER_FORMES;
+			break;
+		
+		case CERCLE:
+			Forme f2=new Cercle(p);
+      f2.setColor(c);
+			formes.add(f2);
+			mae=FSM.AFFICHER_FORMES;
+			break;
+		
+		case TRIANGLE:
+			Forme f3=new Triangle(p);
+      f3.setColor(c);
+			formes.add(f3);
+			mae=FSM.AFFICHER_FORMES;
+			break; 
+  }
+}
+
+
+public void deplacerForme(ActionComplete act) {
+  for (int i=0;i<formes.size();i++) { // we're trying every object in the list
+    Forme f = formes.get(i);
+    if (f.isClicked(act.pointStart) && (f.getClass().toString().split("\\$")[1]).toLowerCase().equals(act.forme.toString().toLowerCase())) {
+      if(act.c != null) {
+        int c = color(act.c.getRed(), act.c.getGreen(), act.c.getBlue());
+        if(f.getColor() == c) {
+          f.setLocation(act.pointEnd);
+        }
+      }else f.setLocation(act.pointEnd);
+    }
+  }
+}
+
+public void supprimerForme(ActionComplete act) {
+  for (int i=0;i<formes.size();i++) { // we're trying every object in the list
+    Forme f = formes.get(i);
+    if (f.isClicked(act.pointStart) && (f.getClass().toString().split("\\$")[1]).toLowerCase().equals(act.forme.toString().toLowerCase())) {
+      if(act.c != null) {
+        int c = color(act.c.getRed(), act.c.getGreen(), act.c.getBlue());
+        if(f.getColor() == c) {
+          formes.remove(i);
+        }
+      }else formes.remove(i);
+    }
+  }
+}
+
+enum Action {
+	NONE,
+	CREER,
+	SUPPRIMER,
+	DEPLACER;
+
+	public static Action parseAction(String s) {
+		switch (s) {
+			case "CREER" :
+				return Action.CREER;
+				
+			case "SUPPRIMER" :
+				return Action.SUPPRIMER;
+				
+			case "DEPLACER" :
+				return Action.DEPLACER;
+
+			default :
+				return Action.NONE;
+		}
+	}
+}
+
+
+public static class ActionComplete {
+    public Action act = Action.NONE;
+    public Formes forme = Formes.NONE;
+    public Color c = null;
+    public Point pointStart = null;
+    public Point pointEnd = null;
+
+    @Override
+    public String toString() {
+        String toString = act.toString();
+            toString += ";" + forme;
+            toString += ";" + (c != null ? (c.getRed() + "," + c.getGreen() + "," + c.getBlue()) : ("null"));
+            toString += ";" + (pointStart != null ? (pointStart.getX() + "," + pointStart.getY()) : ("null"));
+            toString += ";" + (pointEnd != null ? (pointEnd.getX() + "," + pointEnd.getY()) : ("null"));
+            return toString;
+    }
+
+    public static ActionComplete parseActionComplete(String s) {
+        ActionComplete act = new ActionComplete();
+        String[] vals = s.split(";");
+        act.act     = Action.parseAction(vals[0]);
+        act.forme   = Formes.parseFormes(vals[1]);
+
+        if(vals[2].equals("null"))
+            act.c   = null;
+        else {
+            String[] args = vals[2].split(",");
+            act.c   = new Color((int)Double.parseDouble(args[0]), (int)Double.parseDouble(args[1]), (int)Double.parseDouble(args[2]));
+        }
+
+        if(vals[3].equals("null"))
+            act.pointStart   = null;
+        else {
+            String[] args = vals[3].split(",");
+            act.pointStart  = new Point((int)Double.parseDouble(args[0]), (int)Double.parseDouble(args[1]));
+        }
+
+        if(vals[4].equals("null"))
+            act.pointEnd   = null;
+        else {
+            String[] args = vals[4].split(",");
+            act.pointEnd    = new Point((int)Double.parseDouble(args[0]), (int)Double.parseDouble(args[1]));
+        }
+        return act;
+    }
+}
 /*
  * Classe Cercle
  */ 
@@ -232,6 +449,29 @@ abstract class Forme {
  
  protected abstract double perimetre();
  protected abstract double aire();
+}
+
+enum Formes{
+	NONE,
+	RECTANGLE,
+	CERCLE,
+	TRIANGLE;
+
+	public static Formes parseFormes(String s) {
+		switch (s) {
+			case "RECTANGLE" :
+				return Formes.RECTANGLE;
+				
+			case "CERCLE" :
+				return Formes.CERCLE;
+				
+			case "TRIANGLE" :
+				return Formes.TRIANGLE;
+
+			default :
+				return Formes.NONE;
+		}
+	}
 }
 /*
  * Classe Rectangle

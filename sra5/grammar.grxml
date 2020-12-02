@@ -47,6 +47,10 @@
           <ruleref uri="#localisation"/>
           <tag>out="ici"</tag>
         </item>
+
+        <item>cette couleur
+          <tag>out="pipette"</tag>
+        </item>
  
         <item>bleu
           <tag>out="bleu"</tag>
@@ -131,7 +135,6 @@
         </one-of>
       </item>
     </one-of>
-  </rule>
- 
+  </rule> 
  
 </grammar>

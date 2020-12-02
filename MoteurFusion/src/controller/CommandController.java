@@ -10,21 +10,35 @@ public class CommandController {
         public void invoke(ObjType cmd);
     }
 
-    public class ActionComplete {
+    public static class ActionComplete {
         public Action act = Action.NONE;
         public Forme forme = Forme.NONE;
         public Color color = null;
         public Point pointStart = null;
         public Point pointEnd = null;
 
+        public ActionComplete(){
+            act = Action.NONE;
+            forme = Forme.NONE;
+            color = null;
+            pointStart = null;
+            pointEnd = null;
+        }
+
         @Override
         public String toString() {
             String toString = act.toString();
-            if(forme != Forme.NONE) toString += ";" + forme;
-            if(color != null) toString += ";" + color.getRed() + "," + color.getGreen() + "," + color.getBlue();
-            if(pointStart != null) toString += ";" + pointStart.getX() + "," + pointStart.getY();
-            if(pointEnd != null) toString += ";" + pointEnd.getX() + "," + pointEnd.getY();
+            toString += ";" + forme;
+            toString += ";" + (color != null ? (color.getRed() + "," + color.getGreen() + "," + color.getBlue())
+                    : ("null"));
+            toString += ";" + (pointStart != null ? (pointStart.getX() + "," + pointStart.getY()) : ("null"));
+            toString += ";" + (pointEnd != null ? (pointEnd.getX() + "," + pointEnd.getY()) : ("null"));
             return toString;
+        }
+
+        public static ActionComplete parseActionComplete(String s) {
+            ActionComplete act = new ActionComplete();
+            return act;
         }
     }
 
@@ -34,6 +48,7 @@ public class CommandController {
 
     public CommandController(CmdCompleteEventHandler cmdCompleteEventHandler) {
         this.cmdCompleteEventHandler = cmdCompleteEventHandler;
+        this.act = new ActionComplete();
     }
 
     public void start(IvyController ivyController) {
@@ -100,7 +115,9 @@ public class CommandController {
                 isComplete = false;
                 break;
         }
-        if(isComplete)
+        if(isComplete) {
             cmdCompleteEventHandler.invoke(this.act);
+            this.act = new ActionComplete();
+        }
     }
 }
